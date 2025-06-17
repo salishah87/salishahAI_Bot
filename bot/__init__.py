@@ -1,1 +1,1 @@
-# Core Chat Module
+# Core Chat Module (GPT-based)
