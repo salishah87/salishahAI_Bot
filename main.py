@@ -1,21 +1,16 @@
-import logging
-from telegram import Update
-from telegram.ext import ApplicationBuilder, MessageHandler, filters, ContextTypes
-from config import BOT_TOKEN
+from telegram.ext import Updater, MessageHandler, Filters
 from bot.chat import handle_message
-
-logging.basicConfig(level=logging.INFO)
-
-async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await handle_message(update, context)
+from config import TELEGRAM_TOKEN
 
 def main():
-    app = ApplicationBuilder().token(BOT_TOKEN).build()
+    updater = Updater(token=TELEGRAM_TOKEN, use_context=True)
+    dp = updater.dispatcher
 
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler))
+    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_message))
 
     print("Bot is running...")
-    app.run_polling()
+    updater.start_polling()
+    updater.idle()
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
