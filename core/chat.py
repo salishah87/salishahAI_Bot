@@ -2,9 +2,13 @@ import requests
 from config import OPENROUTER_API_KEY
 
 def ask_openrouter(prompt: str, user_id: int) -> str:
+    url = "https://openrouter.ai/api/v1/chat/completions"
+
     headers = {
         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://yourdomain.com",  # اختیاری، اما OpenRouter توصیه کرده
+        "X-Title": "Telegram AI Bot"              # برای ریت‌لیمیت بهتر
     }
 
     data = {
@@ -15,9 +19,10 @@ def ask_openrouter(prompt: str, user_id: int) -> str:
         ]
     }
 
-    response = requests.post("https://openrouter.ai/api/v1/chat/completions", json=data, headers=headers)
-    
+    response = requests.post(url, json=data, headers=headers)
+
     if response.status_code == 200:
-        return response.json()['choices'][0]['message']['content']
+        return response.json()["choices"][0]["message"]["content"]
     else:
-        raise Exception(f"OpenRouter error: {response.text}")
+        print(f"❌ API Error {response.status_code}: {response.text}")
+        raise Exception("خطا در اتصال به مدل.")
