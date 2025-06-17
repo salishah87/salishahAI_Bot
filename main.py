@@ -1,16 +1,27 @@
-from telegram.ext import Updater, MessageHandler, Filters
-from bot.chat import handle_message
-from config import TELEGRAM_TOKEN
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
+from chat import ask_openrouter
+import logging
 
-def main():
-    updater = Updater(token=TELEGRAM_TOKEN, use_context=True)
-    dp = updater.dispatcher
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_message))
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("سلام! من بات هوش مصنوعی هستم. پیام خود را ارسال کنید.")
 
-    print("Bot is running...")
-    updater.start_polling()
-    updater.idle()
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_message = update.message.text
+    messages = [{"role": "user", "content": user_message}]
+    try:
+        response = ask_openrouter(messages)
+        bot_reply = response['choices'][0]['message']['content']
+    except Exception as e:
+        bot_reply = str(e)
+    await update.message.reply_text(bot_reply)
 
-if __name__ == '__main__':
-    main()
+if __name__ == "__main__":
+    import config
+    application = ApplicationBuilder().token(config.BOT_TOKEN).build()
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
+    application.run_polling()
